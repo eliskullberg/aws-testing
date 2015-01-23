@@ -1,0 +1,157 @@
+{	"AWSTemplateFormatVersion": "2010-09-09",
+
+	"Description": "Probably the best infrastructure in the world",
+
+	"Resources": {
+
+	"k64securitygroup" : {
+	   "Type" : "AWS::EC2::SecurityGroup",
+	   "Properties" : {
+	      "GroupDescription" : "Allow anything anywhere",
+	      "VpcId" : {"Ref" : "k64vpc"},
+		      "SecurityGroupIngress" : [{
+		            "IpProtocol" : "-1",
+		            "FromPort" : "0",
+		            "ToPort" : "65535",
+		            "CidrIp" : "0.0.0.0/0"
+		         }],
+		      "SecurityGroupEgress" : [{
+		         "IpProtocol" : "-1",
+		         "FromPort" : "0",
+		         "ToPort" : "65535",
+		         "CidrIp" : "0.0.0.0/0"
+	      		}]
+	   		}
+		},
+
+		"k64vpc" :{
+		   "Type" : "AWS::EC2::VPC",
+		   "Properties" : {
+		      "CidrBlock" : "10.0.0.0/16",
+		      "EnableDnsSupport" : true,
+		      "EnableDnsHostnames" : true,
+		      "InstanceTenancy" : "default"
+		   }
+		},
+
+		"k64subneta" :{
+		   "Type" : "AWS::EC2::Subnet",
+		   "Properties" : {
+		      "AvailabilityZone" : "eu-west-1a",
+		      "CidrBlock" : "10.0.1.0/24",
+		      "VpcId" : { "Ref" : "k64vpc" }
+		   }
+		},
+
+		"k64subnetb" :{
+		   "Type" : "AWS::EC2::Subnet",
+		   "Properties" : {
+		      "AvailabilityZone" : "eu-west-1b",
+		      "CidrBlock" : "10.0.2.0/24",
+		      "VpcId" : { "Ref" : "k64vpc" }
+		   }
+		},
+
+		"k64subnetc" :{
+		   "Type" : "AWS::EC2::Subnet",
+		   "Properties" : {
+		      "AvailabilityZone" : "eu-west-1c",
+		      "CidrBlock" : "10.0.3.0/24",
+		      "VpcId" : { "Ref" : "k64vpc" }
+		   }
+		},
+		
+		 "k64internetgw" : {
+	         "Type" : "AWS::EC2::InternetGateway",
+	         "Properties" : {
+	    	}
+      	},
+
+      	"k64gwattach" : {
+		   "Type" : "AWS::EC2::VPCGatewayAttachment",
+		   "Properties" : {
+		      "VpcId" : { "Ref" : "k64vpc" },
+		      "InternetGatewayId" : { "Ref" : "k64internetgw" }
+		   }
+		},
+
+      	"k64mainroutetable" : {
+	         "Type" : "AWS::EC2::RouteTable",
+	         "Properties" : {
+	            "VpcId" : { "Ref" : "k64vpc" }
+	         	}
+      	},
+
+      	"k64routea" : {
+	         "Type" : "AWS::EC2::Route",
+	         "Properties" : {
+	            "RouteTableId" : { "Ref" : "k64mainroutetable" },
+	            "DestinationCidrBlock" : "0.0.0.0/0",
+	            "GatewayId" : { "Ref" : "k64internetgw" }
+	         },
+			"DependsOn" : "k64internetgw"
+      	},
+
+		 "k64subnetaroutingtable" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : { "Ref" : "k64subneta" },
+            "RouteTableId" : { "Ref" : "k64mainroutetable" }
+         },
+         "DependsOn" : "k64mainroutetable"
+      },
+
+       "k64subnetbroutingtable" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : { "Ref" : "k64subnetb" },
+            "RouteTableId" : { "Ref" : "k64mainroutetable" }       
+         }, 
+         "DependsOn" : "k64mainroutetable"
+
+      },
+
+       "k64subnetcroutingtable" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : { "Ref" : "k64subnetc" },
+            "RouteTableId" : { "Ref" : "k64mainroutetable" }
+         },
+         "DependsOn" : "k64mainroutetable"
+      },
+
+     	"k64maininstance" : {
+         "Type" : "AWS::EC2::Instance",
+         "Properties" : {
+            "ImageId" : "ami-8cff51fb",
+            "InstanceType" : "t2.micro",
+            "KeyName" : "k64",
+            "NetworkInterfaces" : [{
+	        "AssociatePublicIpAddress" : "true",
+	        "DeviceIndex"              : "0",
+	        "DeleteOnTermination"      : "true",
+	        "SubnetId"                 : { "Ref" : "k64subneta" }
+        }]
+        },
+		"DependsOn" : "k64internetgw",
+		"DependsOn" : "k64subneta"
+      },
+
+    	"k64extrainstance" : {
+         "Type" : "AWS::EC2::Instance",
+         "Properties" : {
+            "ImageId" : "ami-f0b11187",
+            "InstanceType" : "t2.micro",
+            "KeyName" : "k64",
+            "NetworkInterfaces" : [{
+	        "AssociatePublicIpAddress" : "true",
+	        "DeviceIndex"              : "0",
+	        "DeleteOnTermination"      : "true",
+	        "SubnetId"                 : { "Ref" : "k64subnetb" }
+        }]
+        },
+		"DependsOn" : "k64internetgw",
+		"DependsOn" : "k64subnetb"
+      }
+	}
+}     
