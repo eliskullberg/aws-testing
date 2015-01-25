@@ -120,23 +120,6 @@
          "DependsOn" : "k64mainroutetable"
       },
 
-     	"k64maininstance" : {
-         "Type" : "AWS::EC2::Instance",
-         "Properties" : {
-            "ImageId" : "ami-8cff51fb",
-            "InstanceType" : "t2.micro",
-            "KeyName" : "k64",
-            "NetworkInterfaces" : [{
-	        "AssociatePublicIpAddress" : "true",
-	        "DeviceIndex"              : "0",
-	        "DeleteOnTermination"      : "true",
-	        "SubnetId"                 : { "Ref" : "k64subneta" }
-        }]
-        },
-		"DependsOn" : "k64internetgw",
-		"DependsOn" : "k64subneta"
-      },
-
     	"k64extrainstance" : {
          "Type" : "AWS::EC2::Instance",
          "Properties" : {
